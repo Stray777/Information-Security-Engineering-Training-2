@@ -1,4 +1,3 @@
-from CaesarCipher import CaesarCipher
 from UI import UI
 import tkinter as tk
 
