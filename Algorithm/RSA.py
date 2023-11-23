@@ -1,4 +1,3 @@
-import random
 from sympy import totient
 import math
 
