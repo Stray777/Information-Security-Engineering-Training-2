@@ -1,11 +1,11 @@
-# import base64
+import base64
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 from Algorithm.CaesarCipher import CaesarCipher
 from Algorithm.KeywordCipher import KeywordCipher
-# from Algorithm.RSA import RSA
+from Algorithm.RSA import RSA
 
 # 添加密码需要修改
 # encrypt_options_algorithm; decrypt_options_algorithm
@@ -46,7 +46,7 @@ class UI:
         self.entry_key1.grid(row=3, column=1)
         self.label_encrypt_algorithm = tk.Label(self.frame1, text="Encrypt Algorithm")
         self.label_encrypt_algorithm.grid(row=4, column=0, pady=10)
-        self.encrypt_options_algorithm = ["CaesarCipher", "KeywordCipher"]
+        self.encrypt_options_algorithm = ["CaesarCipher", "KeywordCipher", "RSA"]
         self.encrypt_selected_algorithm = None
         self.combobox_algorithm = ttk.Combobox(self.frame1, values=self.encrypt_options_algorithm, state="readonly")
         self.combobox_algorithm.bind("<<ComboboxSelected>>", self.encrypt_algorithm_select)
@@ -72,7 +72,7 @@ class UI:
         self.entry_key2.grid(row=3, column=1)
         self.label_decrypt_algorithm = tk.Label(self.frame2, text="Decrypt Algorithm")
         self.label_decrypt_algorithm.grid(row=4, column=0, pady=10)
-        self.decrypt_options_algorithm = ["CaesarCipher", "KeywordCipher"]
+        self.decrypt_options_algorithm = ["CaesarCipher", "KeywordCipher", "RSA"]
         self.decrypt_selected_algorithm = None
         self.combobox_algorithm2 = ttk.Combobox(self.frame2, values=self.decrypt_options_algorithm, state="readonly")
         self.combobox_algorithm2.bind("<<ComboboxSelected>>", self.decrypt_algorithm_select)
@@ -132,18 +132,24 @@ class UI:
     def encrypt_algorithm_select(self, event):
         if event:
             selected_item = self.combobox_algorithm.get()
+            if selected_item == "RSA":
+                messagebox.showinfo("RSA提醒", "每个值需要以分号( ; )隔开\n如: 23;19;17")
             algorithm_options = {
                 "CaesarCipher": self.caesar_cipher_encrypt,
-                "KeywordCipher": self.keyword_cipher_encrypt
+                "KeywordCipher": self.keyword_cipher_encrypt,
+                "RSA": self.rsa_encrypt
             }
             self.encrypt_selected_algorithm = algorithm_options.get(selected_item)
 
     def decrypt_algorithm_select(self, event):
         if event:
             selected_item = self.combobox_algorithm2.get()
+            if selected_item == "RSA":
+                messagebox.showinfo("RSA提醒", "每个值需要以分号( ; )隔开\n如: 233;437")
             algorithm_options = {
                 "CaesarCipher": self.caesar_cipher_decrypt,
-                "KeywordCipher": self.keyword_cipher_decrypt
+                "KeywordCipher": self.keyword_cipher_decrypt,
+                "RSA": self.rsa_decrypt
             }
             self.decrypt_selected_algorithm = algorithm_options.get(selected_item)
 
@@ -181,42 +187,52 @@ class UI:
         plain_text = algorithm.keyword_cipher_decrypt(self.text_ciphertext.get("1.0", "end"))
         self.pop_up_window("结果", "明文", plain_text, "关闭")
 
-    # def rsa_encrypt(self, key: str):
-    #     """RSA加密"""
-    #     key_list = key.split(";")
-    #     try:
-    #         prime_p = int(key_list[0])
-    #         prime_q = int(key_list[1])
-    #         key_e = int(key_list[2])
-    #     except ValueError as e:
-    #         messagebox.showerror("错误", f"key应该为数字\n\n{e}")
-    #         return None
-    #
-    #     rsa = RSA()
-    #
-    #     rsa.plaintext = self.text_plaintext.get("1.0", "end")
-    #     # 以下为加密过程需要输入的数字，prime_p,prime_q为质数，prime_p与prime_q相乘得到n，e与n互质。
-    #     rsa.prime_p = prime_p
-    #     rsa.prime_q = prime_q
-    #     rsa.key_e = key_e
-    #     rsa.ciphertext = rsa.encrypt()
-    #     base64_encoded = base64.b64encode(rsa.ciphertext.encode("utf-8")).decode('utf-8')
-    #     key_n = rsa.prime_p * rsa.prime_q
-    #     self.pop_up_window("结果", "密文", f"密钥d:{rsa.key_d}\n密钥n:{key_n}\n密文:{base64_encoded}", "关闭")
-    #
-    # def rsa_decrypt(self, key: str):
-    #     """RSA解密"""
-    #     key_list = key.split(";")
-    #     try:
-    #         key_d = int(key_list[0])
-    #         key_n = int(key_list[1])
-    #     except ValueError as e:
-    #         messagebox.showerror("错误", f"key应该为数字\n\n{e}")
-    #         return None
-    #
-    #     rsa = RSA()
-    #     rsa.ciphertext = base64.b64decode(self.text_ciphertext.get("1.0", "end").encode("utf-8")).decode("utf-8")
-    #     rsa.decrypt_key_d = key_d
-    #     rsa.decrypt_key_n = key_n
-    #     rsa.plaintext = rsa.decrypt()
-    #     self.pop_up_window("结果", "明文", rsa.plaintext, "关闭")
+    def rsa_encrypt(self, key: str):
+        """RSA加密"""
+        key_list = key.split(";")
+        try:
+            prime_p = int(key_list[0])
+            prime_q = int(key_list[1])
+            key_e = int(key_list[2])
+        except ValueError as e:
+            messagebox.showerror("错误", f"key应该为数字\n\n{e}")
+            return None
+        except IndexError as e:
+            messagebox.showerror("错误", f"Key应该传入三个值\n{e}")
+            return None
+
+        rsa = RSA()
+
+        rsa.plaintext = self.text_plaintext.get("1.0", "end")
+        # 以下为加密过程需要输入的数字，prime_p,prime_q为质数，prime_p与prime_q相乘得到n，e与n互质。
+        rsa.prime_p = prime_p
+        rsa.prime_q = prime_q
+        rsa.key_e = key_e
+        try:
+            rsa.ciphertext = rsa.encrypt()
+        except ValueError as e:
+            messagebox.showerror("错误", f"{e}")
+            return None
+        base64_encoded = base64.b64encode(rsa.ciphertext.encode("utf-8")).decode('utf-8')
+        key_n = rsa.prime_p * rsa.prime_q
+        self.pop_up_window("结果", "密文", f"密钥d:{rsa.key_d}\n密钥n:{key_n}\n密文:{base64_encoded}", "关闭")
+
+    def rsa_decrypt(self, key: str):
+        """RSA解密"""
+        key_list = key.split(";")
+        try:
+            key_d = int(key_list[0])
+            key_n = int(key_list[1])
+        except ValueError as e:
+            messagebox.showerror("错误", f"key应该为数字\n\n{e}")
+            return None
+        except IndexError as e:
+            messagebox.showerror("错误", f"Key应该传入两个值\n{e}")
+            return None
+
+        rsa = RSA()
+        rsa.ciphertext = base64.b64decode(self.text_ciphertext.get("1.0", "end").encode("utf-8")).decode("utf-8")
+        rsa.decrypt_key_d = key_d
+        rsa.decrypt_key_n = key_n
+        rsa.plaintext = rsa.decrypt()
+        self.pop_up_window("结果", "明文", rsa.plaintext, "关闭")
