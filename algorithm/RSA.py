@@ -44,28 +44,22 @@ class RSA:
     def _are_coprime_(euler_n, public_key_e):  # 判断两数是否互质
         return math.gcd(euler_n, public_key_e) == 1
 
-    def _get_public_key_n_(self):  # 获取p，q，判断其是否为质数，获取其乘积，即公钥n
-        if self._if_prime_(self.prime_p) == 1 & self._if_prime_(self.prime_q) == 1:  # 分别判断两数是否为质数
-            public_key_n = self.prime_p * self.prime_q
-            return public_key_n
-        else:  # 如果存在非质数则抛出异常
-            raise ValueError("One of these numbers is not a prime number")
+    def _get_public_key_n_(self):  # 获取p，q，获取其乘积，即公钥n
+        public_key_n = self.prime_p * self.prime_q
+        self.key_n = public_key_n
 
     def _get_public_key_e_(self, public_key_n):  # 获取公钥e，并判断其是否与n的欧拉函数互质，参数为公钥n
         euler_n = totient(public_key_n)
-        if self._are_coprime_(euler_n, self.key_e) and 1 < self.key_e < euler_n:  # 判断是否互质
-            return self.key_e
+        if self._are_coprime_(euler_n, self.key_e):  # 判断是否互质
+            self.key_e = self.key_e
         else:
-            raise ValueError("ERROR:This number is not available")
+            raise ValueError("ERROR:This number is not coprime with the public key n")
 
     def _get_private_key_(self, euler_n):  # 获取私钥d，其为e关于n的欧拉函数的模反函数
-        return self._mod_inverse_(self.key_e, euler_n)
+        self.key_d = self._mod_inverse_(self.key_e, euler_n)
 
     def _encrypt_char_(self, plain_char):  # 加密单个字符
         plain_char_num = ord(plain_char)
-        self.key_n = self._get_public_key_n_()
-        self.key_e = self._get_public_key_e_(self.key_n)
-        self.key_d = self._get_private_key_(totient(self.key_n))
         cipher_char_num = (plain_char_num ** self.key_e) % self.key_n
         return chr(cipher_char_num)
 
@@ -75,6 +69,14 @@ class RSA:
         return chr(plain_char_num)
 
     def encrypt(self):  # 加密字符串
+        if self._if_prime_(self.prime_p) == 0 or self._if_prime_(
+                self.prime_q) == 0 or self.prime_q <= 1 or self.prime_p <= 1 or self.key_e <= 1:  # 分别判断两数是否为质数
+            raise ValueError("ERROR:Value error!")
+        self._get_public_key_n_()
+        if not self._are_coprime_(totient(self.key_n), self.key_e):
+            raise ValueError("ERROR:Value error!")
+        self._get_public_key_e_(self.key_n)
+        self._get_private_key_(totient(self.key_n))
         char = ''
         ciphertext = ""
         for char in self.plaintext:
@@ -87,24 +89,3 @@ class RSA:
         for char in self.ciphertext:
             plaintext += self._decrypt_char_(char)
         return plaintext
-
-
-def main():  # 测试
-    rsa = RSA()
-    # 密文
-    rsa.plaintext = "plaintext"
-    # 以下为加密过程需要输入的数字，prime_p,prime_q为偶数，prime_p与prime_q相乘得到n，e与n互质。
-    rsa.prime_p = int(input("输入第一个质数\n"))
-    rsa.prime_q = int(input("输入第二个质数\n"))
-    rsa.key_e = int(input("输入与" + str(totient(rsa.prime_p * rsa.prime_q)) + "且大于1小于" + str(
-        totient(rsa.prime_p * rsa.prime_q)) + "互质的数\n"))
-    rsa.ciphertext = rsa.encrypt()
-    print("密钥d是" + str(rsa.key_d) + "\n")
-    print("密钥n是" + str(rsa.prime_p * rsa.prime_q) + "\n")
-    print("密文是" + str(rsa.ciphertext) + "\n")
-    # 以下为解密过程需要输入的数字
-    rsa.decrypt_key_n = 6
-    rsa.decrypt_key_d = int(input("输入密钥d\n"))
-    rsa.decrypt_key_n = int(input("输入密钥n\n"))
-    rsa.ciphertext = rsa.decrypt()
-    print("明文是" + str(rsa.ciphertext) + "\n")

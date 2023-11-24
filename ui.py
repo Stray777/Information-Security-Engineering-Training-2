@@ -3,9 +3,9 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
-from Algorithm.CaesarCipher import CaesarCipher
-from Algorithm.KeywordCipher import KeywordCipher
-from Algorithm.RSA import RSA
+from algorithm.CaesarCipher import CaesarCipher
+from algorithm.KeywordCipher import KeywordCipher
+from algorithm.RSA import RSA
 
 # 添加密码需要修改
 # encrypt_options_algorithm; decrypt_options_algorithm
@@ -44,7 +44,7 @@ class UI:
         self.label_key.grid(row=3, column=0)
         self.entry_key1 = tk.Entry(self.frame1)
         self.entry_key1.grid(row=3, column=1)
-        self.label_encrypt_algorithm = tk.Label(self.frame1, text="Encrypt Algorithm")
+        self.label_encrypt_algorithm = tk.Label(self.frame1, text="Encrypt algorithm")
         self.label_encrypt_algorithm.grid(row=4, column=0, pady=10)
         self.encrypt_options_algorithm = ["CaesarCipher", "KeywordCipher", "RSA"]
         self.encrypt_selected_algorithm = None
@@ -70,7 +70,7 @@ class UI:
         self.label_key2.grid(row=3, column=0)
         self.entry_key2 = tk.Entry(self.frame2)
         self.entry_key2.grid(row=3, column=1)
-        self.label_decrypt_algorithm = tk.Label(self.frame2, text="Decrypt Algorithm")
+        self.label_decrypt_algorithm = tk.Label(self.frame2, text="Decrypt algorithm")
         self.label_decrypt_algorithm.grid(row=4, column=0, pady=10)
         self.decrypt_options_algorithm = ["CaesarCipher", "KeywordCipher", "RSA"]
         self.decrypt_selected_algorithm = None
