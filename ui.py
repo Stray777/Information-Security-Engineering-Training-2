@@ -14,8 +14,9 @@ from algorithm.RSA import RSA
 
 
 class UI:
-    def __init__(self, root):
-        self.root = root
+    def __init__(self, controller):
+        self.controller = controller
+        self.root = tk.Tk()
         # 主界面标题
         self.root.title("加解密实践")
         # 设置窗口大小和居中
@@ -80,6 +81,9 @@ class UI:
         self.combobox_algorithm2.grid(row=4, column=1)
         self.button_algorithm2 = tk.Button(self.frame2, text="Decrypt", command=self.decrypt_on_button_algorithm_click)
         self.button_algorithm2.grid(row=5, column=1)
+
+    def run(self):
+        self.root.mainloop()
 
     def pop_up_window(self, title='', label_text='', content='', button_text='') -> None:
         """弹窗"""

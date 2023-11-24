@@ -1,10 +1,12 @@
 from ui import UI
-import tkinter as tk
+
+
+def main():
+    controller = 1
+
+    window = UI(controller)
+    window.run()
+
 
 if __name__ == "__main__":
-    # 创建主窗口
-    root = tk.Tk()
-    # 实例化窗口
-    window = UI(root)
-    # 运行
-    root.mainloop()
+    main()
