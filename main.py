@@ -1,11 +1,11 @@
-from ui import UI
+from view import View
+from controller import Controller
 
 
 def main():
-    controller = 1
-
-    window = UI(controller)
-    window.run()
+    view = View()
+    controller = Controller(view)
+    controller.run_view()
 
 
 if __name__ == "__main__":
