@@ -1,4 +1,4 @@
-from model import CaesarCipher, KeywordCipher, RSA
+from model import *
 from tkinter import filedialog, messagebox
 import tkinter as tk
 
@@ -14,7 +14,7 @@ class Controller:
     def encrypt_on_button_click(self):
         """加密按钮"""
         option = self.view.combobox_algorithm.get()
-        key = self.view.entry_key1.get()
+        key = self.view.entry_key1.get().strip('\n')
         if option == "Select an algorithm":
             messagebox.showerror("错误", "请选择具体算法后再点击")
         elif option == "CaesarCipher":
@@ -31,11 +31,14 @@ class Controller:
         elif option == "RSA":
             rsa = RSA(key)
             self.encrypt(rsa)
+        elif option == "PlayfairCipher":
+            playfair = PlayfairCipher(key)
+            self.encrypt(playfair)
 
     def decrypt_on_button_click(self):
         """解密按钮"""
         option = self.view.combobox_algorithm2.get()
-        key = self.view.entry_key2.get()
+        key = self.view.entry_key2.get().strip('\n')
         if option == "Select an algorithm":
             messagebox.showerror("错误", "请选择具体算法后再点击")
         elif option == "CaesarCipher":
@@ -52,6 +55,9 @@ class Controller:
         elif option == "RSA":
             rsa = RSA(key)
             self.decrypt(rsa)
+        elif option == "PlayfairCipher":
+            playfair = PlayfairCipher(key)
+            self.decrypt(playfair)
 
     def open_file(self, button_id: int):
         """打开文本文件"""
@@ -70,7 +76,7 @@ class Controller:
         self.view.root.mainloop()
 
     def encrypt(self, algorithm):
-        plain_text = self.view.text_plaintext.get("1.0", "end")
+        plain_text = self.view.text_plaintext.get("1.0", "end").strip('\n')
         cipher_text = algorithm.encrypt(plain_text)
         if isinstance(algorithm, RSA):
             d = algorithm.key_d
@@ -80,6 +86,6 @@ class Controller:
             self.view.pop_up_window("结果", "密文", cipher_text, "关闭")
 
     def decrypt(self, algorithm):
-        cipher_text = self.view.text_ciphertext.get("1.0", "end")
+        cipher_text = self.view.text_ciphertext.get("1.0", "end").strip('\n')
         plain_text = algorithm.decrypt(cipher_text)
         self.view.pop_up_window("结果", "明文", plain_text, "关闭")

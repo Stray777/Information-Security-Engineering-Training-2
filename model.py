@@ -204,3 +204,255 @@ class RSA:
             plaintext += self._decrypt_char_(char)
         self.__plaintext = plaintext
         return plaintext
+
+
+class PlayfairCipher:
+
+    def __init__(self, key: str):  # key 是一个字符串
+        self.key = key        # 密钥初始化   # 有时间的话可以考虑一下共有私有变量（不必了）
+        self.__plain_text = ""
+        self.__cipher_text = ""
+
+    def std_key(self) -> str:                # 对密钥的输入进行标准化
+        key_str = self.key.lower()    # 统一为小写
+        return_key = ''
+        for item in key_str:
+            if item == 'j':            # 将所有的 ‘j’ 都替换为  'i'
+                item = 'i'
+                return_key += item
+            elif item not in return_key:   # 去重
+                return_key += item
+            else:
+                continue
+        return return_key
+
+    def key_dict_space(self, text: str) -> dict:  # 用于生成标准密钥空间，是一个可以映射每个单词在密钥表中坐标的字典，密钥表在代码最下面有示例
+        key_space_dict = {}
+        key = text
+        alphabet = "abcdefghiklmnopqrstuvwxyz"   # 字母表，方便后续生成密钥串
+
+        for item in alphabet:        # 将密钥后半部分填充
+            if item not in key:
+                key += item
+            else:
+                continue
+
+        x = 1
+        y = 1
+        for word in key:
+            if x < 5:
+                key_space_dict[word] = x + y*10    # 坐标表示为 ’yx‘
+                x += 1
+            else:
+                key_space_dict[word] = x + y*10
+                x = 1      # x 回滚到 1
+                y += 1     # y 继续增加
+
+        return key_space_dict
+
+    def key_dict_mirror(self, text: str) -> dict:     # 这是用来1生成坐标对应字母的表
+        key_mir_dict = {}                  # 就是把上面的函数反过来
+        key = text
+        alphabet = "abcdefghiklmnopqrstuvwxyz"
+
+        for item in alphabet:  # 补 全 25 位密钥表
+            if item not in key:
+                key += item
+            else:
+                continue
+
+        x = 1
+        y = 1             # 两个坐标 与 加解密有关
+        for word in key:  # 生成字典的镜像
+            if x < 5:
+                key_mir_dict[x + y * 10] = word
+                x += 1
+            else:
+                key_mir_dict[x + y * 10] = word
+                x = 1  # x 回滚到 1
+                y += 1  # y 向前进位
+
+        return key_mir_dict
+
+    def std_plain_txt(self, text: str) -> str:       # 规范明文，在有连续相同字符的地方插入 q
+        std_plain_txt = ''
+        repeat_monitor = ''  # 一会循环时候检查有没有两个挨着的重复的检控器变量
+        new_str = text.replace(' ', '')  # 除去文本中的空格
+        new_str = new_str.replace('\n', '')  # 去除换行符，无奈至举，后续可以把for循环改成while循环给加回来
+        new_str = new_str.lower()  # 将大写改成小写
+        for item in new_str:
+            if item == repeat_monitor:
+                std_plain_txt += 'q'
+                std_plain_txt += item
+                repeat_monitor = item
+            else:
+                std_plain_txt += item
+                repeat_monitor = item
+        txt_len = len(std_plain_txt)
+        if txt_len % 2 == 0:
+            return std_plain_txt
+        if txt_len % 2 == 1:
+            std_plain_txt += 'q'
+            return std_plain_txt
+        else:
+            return "error in fun std_plain_txt()"
+
+    def encrypt(self, text: str) -> str:   # 加密需要传入明文  # 这里不能直接传私有参数明文码？
+        std_p_txt = self.std_plain_txt(text)   # 标准明文输入
+        use_key = self.std_key()               # 标准密钥
+        std_ctxt = ''                          # 标准密文返回值
+        key_dict = self.key_dict_space(use_key)
+        key_mir_dict = self.key_dict_mirror(use_key)
+
+        for item in range(0, len(std_p_txt), 2):
+            char_1 = std_p_txt[item]
+            char_2 = std_p_txt[item + 1]  # 取出两个连续的明文字符
+            index_1 = key_dict[char_1]  # 字符 1 对应得坐标
+            index_2 = key_dict[char_2]  # 字符 2 对应得坐标
+            x_1 = index_1 % 10  # 横坐标，从左至右递增
+            y_1 = (index_1 - x_1) / 10  # 纵坐标，自上而下递增
+            x_2 = index_2 % 10  # python 有小数
+            y_2 = (index_2 - x_2) / 10
+
+            ctxt_1 = ''  # 加密时用到的字符暂存变量
+            ctxt_2 = ''
+            if y_1 == y_2:  # 两字符对应密码表中同行
+                if x_1 != 5 and x_2 != 5:  # 两个字符均不在表边缘
+                    ctxt_1 = key_mir_dict[y_1 * 10 + (x_1 + 1)]  # 向右着一个
+                    ctxt_2 = key_mir_dict[y_2 * 10 + (x_2 + 1)]
+                    std_ctxt += ctxt_1
+                    std_ctxt += ctxt_2  # 密文写入。是不是本可以更节约资源一些？只是我没想到？
+                elif x_1 != 5 and x_2 == 5:  # 有一方面的明文抵达边界
+                    ctxt_1 = key_mir_dict[y_1 * 10 + (x_1 + 1)]
+                    ctxt_2 = key_mir_dict[y_2 * 10 + 1]  # 直接将靠近边缘的重启
+                    std_ctxt += ctxt_1
+                    std_ctxt += ctxt_2
+                elif x_1 == 5 and x_2 != 5:
+                    ctxt_1 = key_mir_dict[y_1 * 10 + 1]
+                    ctxt_2 = key_mir_dict[y_2 * 10 + (x_2 + 1)]
+                    std_ctxt += ctxt_1
+                    std_ctxt += ctxt_2
+                else:
+                    print("something error in plain text")
+            elif x_1 == x_2:  # 两个字符在同一列
+                if y_1 != 5 and y_2 != 5:
+                    ctxt_1 = key_mir_dict[(y_1 + 1) * 10 + x_1]
+                    ctxt_2 = key_mir_dict[(y_2 + 1) * 10 + x_2]
+                    std_ctxt += ctxt_1
+                    std_ctxt += ctxt_2
+                elif y_1 != 5 and y_2 == 5:
+                    ctxt_1 = key_mir_dict[(y_1 + 1) * 10 + x_1]
+                    ctxt_2 = key_mir_dict[1 * 10 + x_2]  # 回退到第一行
+                    std_ctxt += ctxt_1
+                    std_ctxt += ctxt_2
+                elif y_1 == 5 and y_2 != 5:
+                    ctxt_1 = key_mir_dict[1 * 10 + x_1]  # 回退到第一行
+                    ctxt_2 = key_mir_dict[(y_2 + 1) * 10 + x_2]
+                    std_ctxt += ctxt_1
+                    std_ctxt += ctxt_2
+                else:
+                    print("there is something error in plain text ")
+            else:  # elif y_1 != y_2 & x_1 != x_2: # 既不同行也不同列
+                ctxt_1 = key_mir_dict[y_1 * 10 + x_2]  # 取对角线
+                ctxt_2 = key_mir_dict[y_2 * 10 + x_1]
+                std_ctxt += ctxt_1
+                std_ctxt += ctxt_2
+
+        self.__cipher_text = std_ctxt    # 可以删掉，感觉这个好像对你的代码没什么用
+        return std_ctxt
+
+    def decrypt(self, text: str) -> str:
+        std_ctxt = text  # 拷贝一下
+        std_p_txt = ''  # 标准明文，（结尾可能含有q，中间可能含有q，后续会写函数来去掉可能的q）
+        use_key = self.std_key()  # 规范key字符串
+        key_dict = self.key_dict_space(use_key)
+        key_mir_dict = self.key_dict_mirror(use_key)
+
+        for item in range(0, len(std_ctxt), 2):
+            char_1 = std_ctxt[item]
+            char_2 = std_ctxt[item + 1]  # 取出两个连续的明文字符
+            index_1 = key_dict[char_1]  # 字符 1 对应得坐标
+            index_2 = key_dict[char_2]  # 字符 2 对应得坐标
+            x_1 = index_1 % 10  # 横坐标，从左至右递增
+            y_1 = (index_1 - x_1) / 10  # 纵坐标，自上而下递增
+            x_2 = index_2 % 10  # python 有小数，mlgbz
+            y_2 = (index_2 - x_2) / 10
+
+            p_txt_1 = ''  # 加密时用到的字符暂存变量
+            p_txt_2 = ''
+            if y_1 == y_2:  # 两字符对应密码表中同行
+                if x_1 != 1 and x_2 != 1:  # 两个字符均不在表边缘
+                    p_txt_1 = key_mir_dict[y_1 * 10 + (x_1 - 1)]  # 向右着一个
+                    p_txt_2 = key_mir_dict[y_2 * 10 + (x_2 - 1)]
+                    std_p_txt += p_txt_1
+                    std_p_txt += p_txt_2  # 密文写入。是不是本可以更节约资源一些？只是我没想到？
+                elif x_1 != 1 and x_2 == 1:  # 有一方面的明文抵达边界
+                    p_txt_1 = key_mir_dict[y_1 * 10 + (x_1 - 1)]
+                    p_txt_2 = key_mir_dict[y_2 * 10 + 5]  # 直接将靠近边缘的重启
+                    std_p_txt += p_txt_1
+                    std_p_txt += p_txt_2
+                elif x_1 == 1 and x_2 != 1:
+                    p_txt_1 = key_mir_dict[y_1 * 10 + 5]
+                    p_txt_2 = key_mir_dict[y_2 * 10 + (x_2 - 1)]
+                    std_p_txt += p_txt_1
+                    std_p_txt += p_txt_2
+                else:
+                    print("something error in plain text")
+            elif x_1 == x_2:  # 两个字符在同一列
+                if y_1 != 1 and y_2 != 1:
+                    p_txt_1 = key_mir_dict[(y_1 - 1) * 10 + x_1]
+                    p_txt_2 = key_mir_dict[(y_2 - 1) * 10 + x_2]
+                    std_p_txt += p_txt_1
+                    std_p_txt += p_txt_2
+                elif y_1 != 1 and y_2 == 1:
+                    p_txt_1 = key_mir_dict[(y_1 - 1) * 10 + x_1]
+                    p_txt_2 = key_mir_dict[5 * 10 + x_2]  # 回退到第一行
+                    std_p_txt += p_txt_1
+                    std_p_txt += p_txt_2
+                elif y_1 == 1 and y_2 != 1:
+                    p_txt_1 = key_mir_dict[5 * 10 + x_1]  # 回退到第一行
+                    p_txt_2 = key_mir_dict[(y_2 - 1) * 10 + x_2]
+                    std_p_txt += p_txt_1
+                    std_p_txt += p_txt_2
+                else:
+                    print("there is something error in plain text ")
+            else:  # elif y_1 != y_2 & x_1 != x_2: # 既不同行也不同列
+                p_txt_1 = key_mir_dict[y_1 * 10 + x_2]  # 取对角线
+                p_txt_2 = key_mir_dict[y_2 * 10 + x_1]  # 取对角的解密时候不用变
+                std_p_txt += p_txt_1
+                std_p_txt += p_txt_2
+
+        # 去除没有用的 占位 字符 ‘q’
+        counter = 0
+        std_p_txt_2 = ''
+        for item_2 in std_p_txt:
+            if counter < len(std_p_txt) - 1:
+                if std_p_txt[counter] == 'q' and std_p_txt[counter - 1] == std_p_txt[counter + 1]:
+                    counter += 1
+                    continue
+                else:
+                    std_p_txt_2 += std_p_txt[counter]
+                    counter += 1
+            elif counter == len(std_p_txt) - 1 and std_p_txt[counter] == 'q':
+                break
+            elif counter == len(std_p_txt) - 1 and std_p_txt[counter] != 'q':
+                std_p_txt_2 += std_p_txt[counter]
+            else:
+                print("error when delete charactar 'q")
+
+        self.__plain_text = std_p_txt_2
+        return std_p_txt_2
+
+    def get_ciphertext(self):
+        return self.__cipher_text
+
+    def get_plaintext(self):
+        return self.__plain_text
+
+    def set_plaintext(self, text: str):
+        # 设置明文
+        self.__plain_text = text
+
+    def set_ciphertext(self):
+        # 设置密文   我觉得可以直接用这个设置1明文密文，这样加密函数就不用设置入口参数了，可以直接啥都不设置
+        self.__cipher_text = self.decrypt(self.__plain_text)
