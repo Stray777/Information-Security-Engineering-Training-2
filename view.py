@@ -43,8 +43,9 @@ class View:
             "PlayfairCipher",
             "VigenereCipher",
             "PermutationCipher",
+            "ColumnPermutationCipher",
             "AutokeyCipher",
-            "RC4"
+            "RC4",
         ]
         self.combobox_algorithm = ttk.Combobox(self.frame1, values=self.encrypt_options, state="readonly")
         self.combobox_algorithm.bind("<<ComboboxSelected>>", self.encrypt_options_tips)
@@ -77,6 +78,7 @@ class View:
             "PlayfairCipher",
             "VigenereCipher",
             "PermutationCipher",
+            "ColumnPermutationCipher",
             "AutokeyCipher",
             "RC4"
         ]
@@ -120,8 +122,12 @@ class View:
         selected_item = self.combobox_algorithm.get()
         if selected_item == "RSA":
             messagebox.showinfo("RSA提醒", "每个值需要以分号( ; )隔开\nprime_p;prime_q;key_e\n如: 23;19;17")
+        elif selected_item == "ColumnPermutationCipher":
+            messagebox.showinfo("ColumnPermutationCipher提醒", "每个值需要以分号( ; )隔开\n如: 2;0;1")
 
     def decrypt_options_tips(self, _=None):
         selected_item = self.combobox_algorithm2.get()
         if selected_item == "RSA":
             messagebox.showinfo("RSA提醒", "每个值需要以分号( ; )隔开\nkey_d;key_n\n如: 233;437")
+        elif selected_item == "ColumnPermutationCipher":
+            messagebox.showinfo("ColumnPermutationCipher提醒", "每个值需要以分号( ; )隔开\n如: 2;0;1")

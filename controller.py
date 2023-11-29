@@ -46,6 +46,9 @@ class Controller:
         elif option == "RC4":
             rc4 = RC4(key)
             self.encrypt(rc4)
+        elif option == "ColumnPermutationCipher":
+            column = ColumnPermutationCipher(key)
+            self.encrypt(column)
 
     def decrypt_on_button_click(self):
         """解密按钮"""
@@ -82,6 +85,9 @@ class Controller:
         elif option == "RC4":
             rc4 = RC4(key)
             self.decrypt(rc4)
+        elif option == "ColumnPermutationCipher":
+            column = ColumnPermutationCipher(key)
+            self.decrypt(column)
 
     def open_file(self, button_id: int):
         """打开文本文件"""
