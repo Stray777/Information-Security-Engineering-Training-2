@@ -86,7 +86,6 @@ class View:
         self.combobox_algorithm2.grid(row=4, column=1)
         self.button_decrypt = tk.Button(self.frame2, text="Decrypt")
         self.button_decrypt.grid(row=5, column=1)
-        self.combobox_algorithm2.configure()
 
     def set_button_encrypt(self, command):
         self.button_encrypt.configure(command=command)
