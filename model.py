@@ -613,7 +613,7 @@ class PermutationCipher:
         for item_ in temp:
             ss += "".join(item_)
         #  除去尾部可能出现的A
-        ss.strip("A")
+        ss = ss.strip("A")
         self.__plain_text = ss
         return ss
 
@@ -675,7 +675,7 @@ class RC4:
         self.__cipher_text = ""
 
     @staticmethod
-    def rc4_setup(self, key):
+    def rc4_setup(key):
         """RC4初始化"""
         if isinstance(key, str):
             key = key.encode()
